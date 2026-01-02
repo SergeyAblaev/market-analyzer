@@ -4,10 +4,21 @@ server:
 
 binance:
   ws-url: wss://stream.binance.com:9443/stream
-  symbols: [btcusdt, ethusdt, solusdt]
+  symbols: [btcusdt, ethusdt]
 
 ohlc:
   timeframes: [15, 30, 60]
+
+alerts:
+  price-thresholds:
+    btcusdt:
+      upper: 50000
+      lower: 40000
+  percent-change:
+    btcusdt:
+      timeframe: 15
+      candles: 4
+      percent: 1.5
 
 spring:
   datasource:

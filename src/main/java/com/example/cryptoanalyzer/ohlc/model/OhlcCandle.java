@@ -25,5 +25,5 @@ public class OhlcCandle {
     private Instant startTime;
     private Instant endTime;
 
-    // getters and setters omitted for brevity
+    // getters/setters
 }

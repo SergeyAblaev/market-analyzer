@@ -3,17 +3,11 @@ server:
   port: 8080
 
 binance:
-  ws-url: wss://stream.binance.com:9443/ws
-  symbols:
-    - btcusdt
-    - ethusdt
-    - solusdt
+  ws-url: wss://stream.binance.com:9443/stream
+  symbols: [btcusdt, ethusdt, solusdt]
 
 ohlc:
-  timeframes:
-    - 15
-    - 30
-    - 60
+  timeframes: [15, 30, 60]
 
 spring:
   datasource:
@@ -23,7 +17,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false
 
 management:
   endpoints:

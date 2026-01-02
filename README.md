@@ -6,6 +6,10 @@ Binance WS
 ↓
 TradeEvent
 ↓
-OhlcAggregator
+OHLC Aggregator
 ↓
-Closed Candle (ready for DB / Rules / UI)
+Closed Candle
+↓
+RuleEngine
+↓
+MacOS Alert

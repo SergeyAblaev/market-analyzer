@@ -1,0 +1,32 @@
+
+server:
+  port: 8080
+
+binance:
+  ws-url: wss://stream.binance.com:9443/ws
+  symbols:
+    - btcusdt
+    - ethusdt
+    - solusdt
+
+ohlc:
+  timeframes:
+    - 15
+    - 30
+    - 60
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/crypto
+    username: crypto
+    password: crypto
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus

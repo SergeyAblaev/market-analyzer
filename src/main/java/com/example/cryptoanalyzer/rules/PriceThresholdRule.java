@@ -1,11 +1,13 @@
 
 package com.example.cryptoanalyzer.rules;
 
-import com.example.cryptoanalyzer.alert.MacOsAlertService;
+import com.example.cryptoanalyzer.alerts.service.MacOsAlertService;
+import com.example.cryptoanalyzer.alerts.model.AlertEvent;
 import com.example.cryptoanalyzer.ohlc.model.OhlcCandle;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.Optional;
 
 public class PriceThresholdRule implements AlertRule {
 
@@ -21,7 +23,7 @@ public class PriceThresholdRule implements AlertRule {
     }
 
     @Override
-    public void evaluate(OhlcCandle candle) {
+    public void evaluateMacOs(OhlcCandle candle) {
         Threshold t = thresholds.get(candle.getSymbol().toLowerCase());
         if (t == null) return;
 
@@ -35,4 +37,23 @@ public class PriceThresholdRule implements AlertRule {
                     candle.getSymbol() + " below " + t.lower());
         }
     }
+
+    @Override
+    public Optional<AlertEvent> evaluate(OhlcCandle candle) {
+        Threshold t = thresholds.get(candle.getSymbol().toLowerCase());
+        if (t == null) return Optional.empty();
+
+        BigDecimal close = candle.getClosePrice();
+        if (t.upper() != null && close.compareTo(t.upper()) > 0) {
+            String msg = candle.getSymbol() + " crossed above " + t.upper();
+            return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PRICE_THRESHOLD", msg));
+        }
+        if (t.lower() != null && close.compareTo(t.lower()) < 0) {
+            String msg = candle.getSymbol() + " dropped below " + t.lower();
+            return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PRICE_THRESHOLD", msg));
+        }
+
+        return Optional.empty();
+    }
+
 }

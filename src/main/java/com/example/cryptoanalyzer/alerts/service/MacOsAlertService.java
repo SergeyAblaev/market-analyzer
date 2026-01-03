@@ -1,5 +1,5 @@
 
-package com.example.cryptoanalyzer.alert;
+package com.example.cryptoanalyzer.alerts.service;
 
 import org.springframework.stereotype.Service;
 

@@ -10,21 +10,24 @@ ohlc:
   timeframes: [15, 30, 60]
 
 alerts:
-  price-thresholds:
-    btcusdt:
-      upper: 50000
-      lower: 40000
-  percent-change:
-    btcusdt:
-      timeframe: 15
-      candles: 4
-      percent: 1.5
+  price-thresholds: "{ 'btcusdt': { 'upper': 100000, 'lower': 85000 } }"
+  percent-change: "{ 'ethusdt': { 'timeframe': 15, 'candles': 5, 'percent': 2.5 } }"
+
+#  price-thresholds:
+#    btcusdt:
+#      upper: 50000
+#      lower: 40000
+#  percent-change:
+#    btcusdt:
+#      timeframe: 15
+#      candles: 4
+#      percent: 1.5
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/crypto
-    username: crypto
-    password: crypto
+    url: jdbc:postgresql://localhost:5433/marketanalyse
+    username: marketanalyse
+    password: ${CRYPASS}
   jpa:
     hibernate:
       ddl-auto: update

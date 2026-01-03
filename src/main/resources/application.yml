@@ -4,10 +4,10 @@ server:
 
 binance:
   ws-url: wss://stream.binance.com:9443/stream
-  symbols: [btcusdt, ethusdt]
+  symbols: btcusdt, ethusdt
 
 ohlc:
-  timeframes: [15, 30, 60]
+  timeframes: 15, 30, 60
 
 alerts:
   price-thresholds: "{ 'btcusdt': { 'upper': 100000, 'lower': 85000 } }"

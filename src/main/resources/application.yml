@@ -23,6 +23,7 @@ alerts:
 #      candles: 4
 #      percent: 1.5
 
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5433/marketanalyse
@@ -37,3 +38,7 @@ management:
     web:
       exposure:
         include: health,info,prometheus
+logging:
+  level:
+    root: INFO
+#    com.example.cryptoanalyzer: DEBUG

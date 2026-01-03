@@ -3,21 +3,32 @@ package com.example.cryptoanalyzer.ohlc.service;
 
 import com.example.cryptoanalyzer.market.ws.TradeEvent;
 import com.example.cryptoanalyzer.ohlc.model.OhlcCandle;
+import com.example.cryptoanalyzer.ohlc.repository.OhlcCandleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 
 @Service
 public class OhlcAggregator {
 
+    @Autowired
+    private OhlcCandleRepository repository;
+
     @Value("${ohlc.timeframes}")
     private List<Integer> timeframes;
 
     private final Map<String, Map<Integer, OhlcCandle>> active = new HashMap<>();
 
+    /**
+     * A candle "closes" only when a trade related to the **next** time interval arrives.
+     * Until then, the candle is considered "active" and exists only in memory (`Map active`)
+     * so that new trades can be added to it and `highPrice```lowPrice``volume` can be updated.
+     * @param trade
+     * @return
+     */
     public synchronized Optional<OhlcCandle> onTrade(TradeEvent trade) {
         List<OhlcCandle> closed = new ArrayList<>();
         for (int tf : timeframes) {
@@ -30,7 +41,10 @@ public class OhlcAggregator {
 
             OhlcCandle candle = byTf.get(tf);
             if (candle == null || !candle.getStartTime().equals(start)) {
-                if (candle != null) closed.add(candle);
+                if (candle != null) {
+                    repository.save(candle); // СОХРАНЯЕМ закрытую свечу перед созданием новой
+                    closed.add(candle);
+                }
 
                 candle = new OhlcCandle();
                 candle.setSymbol(trade.symbol());

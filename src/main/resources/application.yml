@@ -42,3 +42,8 @@ logging:
   level:
     root: INFO
 #    com.example.cryptoanalyzer: DEBUG
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  packages-to-scan: com.example.cryptoanalyzer.web

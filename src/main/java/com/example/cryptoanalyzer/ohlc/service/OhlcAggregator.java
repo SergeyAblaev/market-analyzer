@@ -29,7 +29,7 @@ public class OhlcAggregator {
      * @param trade
      * @return
      */
-    public synchronized Optional<OhlcCandle> onTrade(TradeEvent trade) {
+    public synchronized Optional<List<OhlcCandle>> onTrade(TradeEvent trade) {
         List<OhlcCandle> closed = new ArrayList<>();
         for (int tf : timeframes) {
             active.computeIfAbsent(trade.symbol(), s -> new HashMap<>());
@@ -65,6 +65,6 @@ public class OhlcAggregator {
                 candle.setVolume(candle.getVolume().add(trade.quantity()));
             }
         }
-        return closed.stream().findFirst();
+        return Optional.ofNullable(closed).filter(c -> !c.isEmpty());
     }
 }

@@ -14,7 +14,7 @@ public class MarketDataService {
     public MarketDataService(BinanceWebSocketClient client, OhlcAggregator aggregator) {
         client.subscribe(trade -> {
             aggregator.onTrade(trade)
-                      .ifPresent(c -> log.info("Closed candle: {} {}", c.getSymbol(), c.getTimeframeSeconds()));
+                      .ifPresent(c -> log.info("Closed candles: {}", c));
         });
     }
 

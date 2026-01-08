@@ -4,6 +4,8 @@ package com.example.cryptoanalyzer.ohlc.service;
 import com.example.cryptoanalyzer.market.ws.TradeEvent;
 import com.example.cryptoanalyzer.ohlc.model.OhlcCandle;
 import com.example.cryptoanalyzer.ohlc.repository.OhlcCandleRepository;
+import com.example.cryptoanalyzer.rules.RuleEngineService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -12,10 +14,11 @@ import java.time.Instant;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class OhlcAggregator {
 
-    @Autowired
-    private OhlcCandleRepository repository;
+    private final OhlcCandleRepository repository;
+    private final RuleEngineService ruleEngineService;
 
     @Value("${ohlc.timeframes}")
     private List<Integer> timeframes;
@@ -30,7 +33,7 @@ public class OhlcAggregator {
      * @return
      */
     public synchronized Optional<List<OhlcCandle>> onTrade(TradeEvent trade) {
-        List<OhlcCandle> closed = new ArrayList<>();
+        List<OhlcCandle> closed = new ArrayList<>(); //но тогда надо для 'closed' организовать хранилище в памяти?..
         for (int tf : timeframes) {
             active.computeIfAbsent(trade.symbol(), s -> new HashMap<>());
             Map<Integer, OhlcCandle> byTf = active.get(trade.symbol());
@@ -42,8 +45,9 @@ public class OhlcAggregator {
             OhlcCandle candle = byTf.get(tf);
             if (candle == null || !candle.getStartTime().equals(start)) {
                 if (candle != null) {
-                    repository.save(candle); // СОХРАНЯЕМ закрытую свечу перед созданием новой
-                    closed.add(candle);
+                    repository.save(candle);            //save closed candle
+                    ruleEngineService.process(candle);  //run alerts
+                    closed.add(candle); //свеча «закрывается» только тогда, когда приходит сделка, относящаяся к **следующему** временному интервалу. До этого момента свеча считается «активной» и живет только в памяти (`Map active`), чтобы в нее можно было добавлять новые сделки и обновлять , и . `highPrice``lowPrice``volume`
                 }
 
                 candle = new OhlcCandle();

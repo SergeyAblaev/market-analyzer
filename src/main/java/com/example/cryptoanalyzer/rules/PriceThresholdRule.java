@@ -1,7 +1,7 @@
 
 package com.example.cryptoanalyzer.rules;
 
-import com.example.cryptoanalyzer.alerts.service.MacOsAlertService;
+import com.example.cryptoanalyzer.alerts.MacOsAlertNotifier;
 import com.example.cryptoanalyzer.alerts.model.AlertEvent;
 import com.example.cryptoanalyzer.ohlc.model.OhlcCandle;
 
@@ -12,31 +12,31 @@ import java.util.Optional;
 public class PriceThresholdRule implements AlertRule {
 
     private final Map<String, Threshold> thresholds;
-    private final MacOsAlertService alertService;
+    private final MacOsAlertNotifier alertService;
 
     public record Threshold(BigDecimal upper, BigDecimal lower) {}
 
     public PriceThresholdRule(Map<String, Threshold> thresholds,
-                              MacOsAlertService alertService) {
+                              MacOsAlertNotifier alertService) {
         this.thresholds = thresholds;
         this.alertService = alertService;
     }
 
-    @Override
-    public void evaluateMacOs(OhlcCandle candle) {
-        Threshold t = thresholds.get(candle.getSymbol().toLowerCase());
-        if (t == null) return;
-
-        if (t.upper() != null && candle.getClosePrice().compareTo(t.upper()) > 0) {
-            alertService.notify("Price Alert",
-                    candle.getSymbol() + " above " + t.upper());
-        }
-
-        if (t.lower() != null && candle.getClosePrice().compareTo(t.lower()) < 0) {
-            alertService.notify("Price Alert",
-                    candle.getSymbol() + " below " + t.lower());
-        }
-    }
+//    @Override
+//    public void evaluateMacOs(OhlcCandle candle) {
+//        Threshold t = thresholds.get(candle.getSymbol().toLowerCase());
+//        if (t == null) return;
+//
+//        if (t.upper() != null && candle.getClosePrice().compareTo(t.upper()) > 0) {
+//            alertService.notify("Price Alert",
+//                    candle.getSymbol() + " above " + t.upper());
+//        }
+//
+//        if (t.lower() != null && candle.getClosePrice().compareTo(t.lower()) < 0) {
+//            alertService.notify("Price Alert",
+//                    candle.getSymbol() + " below " + t.lower());
+//        }
+//    }
 
     @Override
     public Optional<AlertEvent> evaluate(OhlcCandle candle) {

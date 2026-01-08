@@ -1,6 +1,6 @@
 package com.example.cryptoanalyzer.config;
 
-import com.example.cryptoanalyzer.alerts.service.MacOsAlertService;
+import com.example.cryptoanalyzer.alerts.MacOsAlertNotifier;
 import com.example.cryptoanalyzer.rules.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +20,7 @@ public class AlertRulesConfig {
     private Map<String, Map<String, Object>> percentConfigs;
 
     @Autowired
-    private MacOsAlertService alertService;
+    private MacOsAlertNotifier alertService;
 
     @Bean
     public List<AlertRule> alertRules() {

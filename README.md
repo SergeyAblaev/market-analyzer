@@ -1,6 +1,7 @@
 # market-analyzer links
 http://localhost:8080/
 http://localhost:8080/actuator
+http://localhost:8080/h2-console
 http://localhost:8080/swagger-ui/index.html
 
 

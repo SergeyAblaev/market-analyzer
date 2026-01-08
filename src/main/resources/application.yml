@@ -25,10 +25,20 @@ alerts:
 
 
 spring:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
   datasource:
-    url: jdbc:postgresql://localhost:5433/marketanalyse
-    username: marketanalyse
-    password: ${CRYPASS}
+    url: jdbc:h2:mem:marketanalyse
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+#    url: jdbc:postgresql://localhost:5433/marketanalyse
+#    username: marketanalyse
+#    password: ${CRYPASS}
   jpa:
     hibernate:
       ddl-auto: update

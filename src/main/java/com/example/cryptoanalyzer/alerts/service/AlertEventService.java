@@ -20,6 +20,10 @@ public class AlertEventService {
     }
 
     public List<AlertEvent> getRecent(String symbol) {
-        return repo.findTop100BySymbolOrderByTriggeredAtDesc(symbol);
+        return repo.findAllBySymbol(symbol.toUpperCase());
+    }
+
+    public List<AlertEvent> getAll() {
+        return repo.findAll();
     }
 }

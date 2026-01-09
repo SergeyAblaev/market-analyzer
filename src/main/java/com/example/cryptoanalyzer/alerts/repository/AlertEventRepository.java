@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface AlertEventRepository extends JpaRepository<AlertEvent, Long> {
     List<AlertEvent> findTop100BySymbolOrderByTriggeredAtDesc(String symbol);
+    List<AlertEvent> findAllBySymbol(String symbol);
 }

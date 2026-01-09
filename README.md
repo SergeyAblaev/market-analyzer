@@ -4,8 +4,9 @@ http://localhost:8080/actuator
 http://localhost:8080/h2-console
 http://localhost:8080/swagger-ui/index.html
 
+It's an Event-Driven Architecture (EDA), witch Streaming / Reactive pipeline
 
-# Data Flow:
+# Data Flow :
 
 Binance WS
 ↓

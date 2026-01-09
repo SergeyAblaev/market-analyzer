@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +21,7 @@ public class RuleEngineService {
 //    private final RuleEngine engine;
     private final List<AlertRule> rules;
     private final AlertEventService alertService;
-    private final List<AlertNotifier> notifiers;
+    private final Set<AlertNotifier> notifiers; // Is a set of possible notifiers (1 at this moment)
 
 
 //    public RuleEngineService(List<AlertRule> rules, AlertEventService alertService) {

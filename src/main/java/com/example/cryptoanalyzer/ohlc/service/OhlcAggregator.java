@@ -46,7 +46,7 @@ public class OhlcAggregator {
             if (candle == null || !candle.getStartTime().equals(start)) {
                 if (candle != null) {
                     repository.save(candle);            //save closed candle
-                    ruleEngineService.process(candle);  //run alerts
+                    ruleEngineService.process(candle);  //process and run alerts
                     closed.add(candle); //свеча «закрывается» только тогда, когда приходит сделка, относящаяся к **следующему** временному интервалу. До этого момента свеча считается «активной» и живет только в памяти (`Map active`), чтобы в нее можно было добавлять новые сделки и обновлять , и . `highPrice``lowPrice``volume`
                 }
 

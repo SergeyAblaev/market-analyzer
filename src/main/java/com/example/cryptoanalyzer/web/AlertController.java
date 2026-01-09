@@ -27,4 +27,9 @@ public class AlertController {
         }
         return service.getRecent(symbol.toLowerCase());
     }
+
+    @GetMapping("/all")
+    public List<AlertEvent> listAll() {
+        return service.getAll();
+    }
 }

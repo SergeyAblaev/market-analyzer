@@ -19,25 +19,27 @@ public class AlertRulesConfig {
     @Value("#{${alerts.percent-change}}")
     private Map<String, Map<String, Object>> percentConfigs;
 
-    @Autowired
-    private MacOsAlertNotifier alertService;
+//    @Autowired
+//    private MacOsAlertNotifier alertService;
 
     @Bean
     public List<AlertRule> alertRules() {
         List<AlertRule> list = new ArrayList<>();
 
+        // PriceThresholdRule
         Map<String, PriceThresholdRule.Threshold> thresholds = new HashMap<>();
         priceThresholds.forEach((sym, vals) -> {
             thresholds.put(sym.toLowerCase(),
                     new PriceThresholdRule.Threshold(vals.get("upper"), vals.get("lower")));
         });
-        list.add(new PriceThresholdRule(thresholds, alertService));
+        list.add(new PriceThresholdRule(thresholds));
 
+        // PercentChangeRule
         percentConfigs.forEach((sym, cfg) -> {
             int tf = (Integer) cfg.get("timeframe");
             int c  = (Integer) cfg.get("candles");
             BigDecimal pct = new BigDecimal(cfg.get("percent").toString());
-            list.add(new PercentChangeRule(c, pct, tf, alertService));
+            list.add(new PercentChangeRule(c, pct, tf));
         });
 
         return list;

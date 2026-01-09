@@ -26,7 +26,7 @@ public class AlertRulesConfig {
     public List<AlertRule> alertRules() {
         List<AlertRule> list = new ArrayList<>();
 
-        // PriceThresholdRule
+        // PriceThresholdRules
         Map<String, PriceThresholdRule.Threshold> thresholds = new HashMap<>();
         priceThresholds.forEach((sym, vals) -> {
             thresholds.put(sym.toLowerCase(),
@@ -34,12 +34,12 @@ public class AlertRulesConfig {
         });
         list.add(new PriceThresholdRule(thresholds));
 
-        // PercentChangeRule
+        // PercentChangeRules
         percentConfigs.forEach((sym, cfg) -> {
             int tf = (Integer) cfg.get("timeframe");
             int c  = (Integer) cfg.get("candles");
             BigDecimal pct = new BigDecimal(cfg.get("percent").toString());
-            list.add(new PercentChangeRule(c, pct, tf));
+            list.add(new PercentChangeRule(sym ,c, pct, tf));
         });
 
         return list;

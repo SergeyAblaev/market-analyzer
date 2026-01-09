@@ -11,7 +11,7 @@ ohlc:
 
 alerts:
   price-thresholds: "{ 'BTCUSDT': { 'upper': 90000, 'lower': 85000 },'ETHUSDT': { 'upper': 4000, 'lower': 2700 } }"
-  percent-change: "{ 'ETHUSDT': { 'timeframe': 15, 'candles': 5, 'percent': 2.5 } }"
+  percent-change: "{ 'BTCUSDT': { 'timeframe': 15, 'candles': 3, 'percent': 1.0 },'ETHUSDT': { 'timeframe': 15, 'candles': 3, 'percent': 1.0 } }"
 
 #  price-thresholds:
 #    btcusdt:

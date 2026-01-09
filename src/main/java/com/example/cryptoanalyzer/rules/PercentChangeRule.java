@@ -14,12 +14,15 @@ public class PercentChangeRule implements AlertRule {
     private final int timeframe;
     private final int candles;
     private final BigDecimal percent;
+    private String symbol;
 
     private final Map<String, Deque<OhlcCandle>> history = new HashMap<>();
 
-    public PercentChangeRule(int candles,
+    public PercentChangeRule(String symbol,
+                             int candles,
                              BigDecimal percent,
                              int timeframe) {
+        this.symbol = symbol;
         this.candles = candles;
         this.percent = percent;
         this.timeframe = timeframe;
@@ -55,6 +58,7 @@ public class PercentChangeRule implements AlertRule {
     @Override
     public Optional<AlertEvent> evaluate(OhlcCandle candle) {
         if (candle.getTimeframeSeconds() != timeframe) return Optional.empty();
+        if (!candle.getSymbol().equals(symbol)) return Optional.empty();
 
         var deque = history.computeIfAbsent(candle.getSymbol(), k -> new ArrayDeque<>());
         deque.addLast(candle);

@@ -14,9 +14,9 @@ TradeEvent
 ↓
 OHLC Aggregator
 ↓
-Closed Candle  (здесь нужно вызывать RuleEngine)
+Closed Candle  (here is calling RuleEngine)
 ↓
-RuleEngine     (Проанализируй - хватит ли для работы правил движка - Мапы со свечами в памяти? или надо все же делать запросами к БД? )
+RuleEngine   
 ↓
 MacOS Alert
 
@@ -28,4 +28,4 @@ CREATE DATABASE marketanalyse OWNER marketanalyse;
 # Todo:
 
 Now needs to fix:
-1 PercentChangeRule.java 
+1 PercentChangeRule.java !!

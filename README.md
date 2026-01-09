@@ -24,3 +24,7 @@ MacOS Alert
 
 CREATE USER marketanalyse WITH PASSWORD 'str0ng...';
 CREATE DATABASE marketanalyse OWNER marketanalyse;
+
+# Todo:
+
+Now needs fix PercentChangeRule.java !

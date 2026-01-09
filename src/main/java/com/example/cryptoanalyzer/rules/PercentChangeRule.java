@@ -13,7 +13,6 @@ public class PercentChangeRule implements AlertRule {
     private final int timeframe;
     private final int candles;
     private final BigDecimal percent;
-//    private final MacOsAlertNotifier alertService;
 
     private final Map<String, Deque<OhlcCandle>> history = new HashMap<>();
 

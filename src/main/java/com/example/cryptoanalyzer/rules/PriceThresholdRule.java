@@ -22,21 +22,6 @@ public class PriceThresholdRule implements AlertRule {
         this.thresholds = thresholds;
     }
 
-//    @Override
-//    public void evaluateMacOs(OhlcCandle candle) {
-//        Threshold t = thresholds.get(candle.getSymbol().toLowerCase());
-//        if (t == null) return;
-//
-//        if (t.upper() != null && candle.getClosePrice().compareTo(t.upper()) > 0) {
-//            alertService.notify("Price Alert",
-//                    candle.getSymbol() + " above " + t.upper());
-//        }
-//
-//        if (t.lower() != null && candle.getClosePrice().compareTo(t.lower()) < 0) {
-//            alertService.notify("Price Alert",
-//                    candle.getSymbol() + " below " + t.lower());
-//        }
-//    }
 
     @Override
     public Optional<AlertEvent> evaluate(OhlcCandle candle) {

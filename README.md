@@ -27,4 +27,5 @@ CREATE DATABASE marketanalyse OWNER marketanalyse;
 
 # Todo:
 
-Now needs fix PercentChangeRule.java !
+Now needs to fix:
+1 PercentChangeRule.java 

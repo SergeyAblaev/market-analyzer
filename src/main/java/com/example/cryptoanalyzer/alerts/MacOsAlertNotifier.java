@@ -11,22 +11,47 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class MacOsAlertNotifier implements AlertNotifier {
 
-    public void notify(String title, String message) {
+    @Override
+    public void notify(AlertEvent event) {
+        String emoji = emoji(event);
+        String sound = sound(event);
+
+        String title = emoji + " " + event.getSymbol();
+        String message = event.getMessage();
+
         try {
             new ProcessBuilder(
-                    "osascript",
-                    "-e",
-                    "display notification \"" + message + "\" with title \"" + title + "\""
+                "osascript",
+                "-e",
+                String.format(
+                    "display notification \"%s\" with title \"%s\" sound name \"%s\"",
+                    escape(message),
+                    escape(title),
+                    sound
+                )
             ).start();
         } catch (Exception e) {
             log.error("Error notifying user", e);
         }
     }
 
-    @Override
-    public void notify(AlertEvent event) {
-        String title = event.getSymbol();
-        String message = event.getMessage();
-        notify(title, message);
+    private String emoji(AlertEvent e) {
+        return switch (e.getDirection()) {
+            case UP -> "🟢⬆️";
+            case DOWN -> "🔴⬇️";
+            default -> "🚨";
+        };
+    }
+
+    private String sound(AlertEvent e) {
+        return switch (e.getDirection()) {
+            case UP -> "Glass";
+            case DOWN -> "Basso";
+            default -> "Ping";
+        };
+    }
+
+    private String escape(String s) {
+        return s.replace("\"", "\\\"");
     }
 }

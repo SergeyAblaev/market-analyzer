@@ -1,6 +1,7 @@
 
 package com.example.cryptoanalyzer.rules;
 
+import com.example.cryptoanalyzer.alerts.model.AlertDirection;
 import com.example.cryptoanalyzer.alerts.model.AlertEvent;
 import com.example.cryptoanalyzer.alerts.MacOsAlertNotifier;
 import com.example.cryptoanalyzer.ohlc.model.OhlcCandle;
@@ -69,7 +70,7 @@ public class PercentChangeRule implements AlertRule {
             String msg = String.format("%s changed %.2f%% over last %d candles",
                     candle.getSymbol(), change, candles);
             deque.clear(); // reset window
-            return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PERCENT_CHANGE", msg));
+            return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PERCENT_CHANGE", msg, AlertDirection.NEUTRAL));
         }
         return Optional.empty();
     }

@@ -1,6 +1,7 @@
 
 package com.example.cryptoanalyzer.rules;
 
+import com.example.cryptoanalyzer.alerts.model.AlertDirection;
 import com.example.cryptoanalyzer.alerts.model.AlertEvent;
 import com.example.cryptoanalyzer.ohlc.model.OhlcCandle;
 
@@ -35,7 +36,7 @@ public class PriceThresholdRule implements AlertRule {
             if (!allertFlagUp) {
                 allertFlagsUp.put(symbol, true);
                 String msg = candle.getSymbol() + " crossed above " + t.upper();
-                return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PRICE_THRESHOLD", msg));
+                return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PRICE_THRESHOLD", msg, AlertDirection.UP));
             }
         } else {
             allertFlagsUp.put(symbol, false);
@@ -45,7 +46,7 @@ public class PriceThresholdRule implements AlertRule {
             if (!allertFlagLow) {
                 allertFlagsLow.put(symbol, true);
                 String msg = candle.getSymbol() + " dropped below " + t.lower();
-                return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PRICE_THRESHOLD", msg));
+                return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PRICE_THRESHOLD", msg, AlertDirection.DOWN));
             }
         } else {
             allertFlagsLow.put(symbol, false);

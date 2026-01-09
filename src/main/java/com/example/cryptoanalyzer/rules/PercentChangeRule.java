@@ -5,10 +5,12 @@ import com.example.cryptoanalyzer.alerts.model.AlertDirection;
 import com.example.cryptoanalyzer.alerts.model.AlertEvent;
 import com.example.cryptoanalyzer.alerts.MacOsAlertNotifier;
 import com.example.cryptoanalyzer.ohlc.model.OhlcCandle;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.util.*;
 
+@Slf4j
 public class PercentChangeRule implements AlertRule {
 
     private final int timeframe;
@@ -75,6 +77,8 @@ public class PercentChangeRule implements AlertRule {
                     candle.getSymbol(), change, candles);
             deque.clear(); // reset window
             return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PERCENT_CHANGE", msg, AlertDirection.NEUTRAL));
+        } else {
+            log.debug("Percent change {} is below threshold {} for {}", change, percent, candle.getSymbol());
         }
         return Optional.empty();
     }

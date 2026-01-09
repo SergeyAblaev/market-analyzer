@@ -6,6 +6,7 @@ import com.example.cryptoanalyzer.ohlc.model.OhlcCandle;
 import com.example.cryptoanalyzer.ohlc.repository.OhlcCandleRepository;
 import com.example.cryptoanalyzer.rules.RuleEngineService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OhlcAggregator {
 
     private final OhlcCandleRepository repository;
@@ -48,6 +50,7 @@ public class OhlcAggregator {
                     repository.save(candle);            //save closed candle
                     ruleEngineService.process(candle);  //process and run alerts
                     closed.add(candle); //свеча «закрывается» только тогда, когда приходит сделка, относящаяся к **следующему** временному интервалу. До этого момента свеча считается «активной» и живет только в памяти (`Map active`), чтобы в нее можно было добавлять новые сделки и обновлять , и . `highPrice``lowPrice``volume`
+                    log.info("Close candle {} {}", candle.getSymbol(), candle.getClosePrice());
                 }
 
                 candle = new OhlcCandle();

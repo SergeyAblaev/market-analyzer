@@ -20,7 +20,7 @@ public class RuleEngineService {
     private final Set<AlertNotifier> notifiers; // Is a set of possible notifiers (1 at this moment)
 
     public void process(OhlcCandle candle) {
-        log.info("Processing candle {} {}", candle.getSymbol(), candle.getClosePrice());
+        log.debug("Processing candle {} {}", candle.getSymbol(), candle.getClosePrice());
 
         for (AlertRule rule : rules) {
             rule.evaluate(candle).ifPresent(event -> {

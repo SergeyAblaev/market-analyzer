@@ -66,7 +66,8 @@ public class BinanceWebSocketClient {
                                 log.warn("Invalid WS message: {}", data);
                             }
                         } catch (Exception e) {
-                            log.error("Error parsing WS message: {}", data, e);
+                            log.error("Error parsing WS message: {}", data);
+                            log.debug("Error parsing WS message", e);
                         }
                         webSocket.request(1);
                         return null;

@@ -7,7 +7,7 @@ binance:
   symbols: btcusdt, ethusdt
 
 ohlc:
-  timeframes: 15, 30, 60
+  timeframes: 15
 
 alerts:
   price-thresholds: "{ 'BTCUSDT': { 'upper': 90000, 'lower': 85000 },'ETHUSDT': { 'upper': 4000, 'lower': 2700 } }"

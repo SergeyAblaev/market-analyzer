@@ -12,7 +12,7 @@ ohlc:
 
 alerts:
   price-thresholds: "{ 'BTCUSDT': { 'upper': 90000, 'lower': 85000 },'ETHUSDT': { 'upper': 4000, 'lower': 2700 } }"
-  percent-change: "{ 'BTCUSDT': { 'timeframe': 15, 'candles': 3, 'percent': 1.0 },'ETHUSDT': { 'timeframe': 15, 'candles': 3, 'percent': 1.0 } }"
+  percent-change: "{ 'BTCUSDT': { 'timeframe': 60, 'candles': 3, 'percent': 0.1 },'ETHUSDT': { 'timeframe': 60, 'candles': 5, 'percent': 0.1 } }"
 
 #  price-thresholds:
 #    btcusdt:
@@ -52,7 +52,7 @@ management:
 logging:
   level:
     root: INFO
-#    com.example.cryptoanalyzer: DEBUG
+    com.example.cryptoanalyzer.rules.PercentChangeRule: DEBUG
 
 springdoc:
   api-docs:

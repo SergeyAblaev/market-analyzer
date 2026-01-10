@@ -5,6 +5,8 @@
     <title>Market Analyzer</title>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
 </head>
 <body>
 
@@ -16,21 +18,21 @@
 const ctx = document.getElementById('chart').getContext('2d');
 
 const chart = new Chart(ctx, {
-    type: 'line',
+    type: 'candlestick',
     data: {
-        labels: [],
         datasets: [{
-            label: 'Close price',
-            data: [],
-            borderWidth: 2,
-            pointRadius: 0
+            label: 'BTCUSDT',
+            data: []
         }]
     },
     options: {
         responsive: true,
         scales: {
             x: {
-                ticks: { maxTicksLimit: 10 }
+                type: 'time',
+                time: {
+                    unit: 'minute'
+                }
             }
         }
     }
@@ -40,15 +42,13 @@ async function loadCandles() {
     const res = await fetch('/api/candle/getAll?symbol=BTCUSDT');
     const data = await res.json();
 
-    console.log("Candles:", data);
-
-    chart.data.labels = data.map(c =>
-        new Date(c.startTime).toLocaleTimeString()
-    );
-
-    chart.data.datasets[0].data = data.map(c =>
-        Number(c.closePrice)
-    );
+    chart.data.datasets[0].data = data.map(c => ({
+        x: new Date(c.startTime),
+        o: c.openPrice,
+        h: c.highPrice,
+        l: c.lowPrice,
+        c: c.closePrice
+    }));
 
     chart.update();
 }

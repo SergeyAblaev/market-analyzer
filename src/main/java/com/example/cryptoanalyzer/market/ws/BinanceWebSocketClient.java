@@ -59,7 +59,7 @@ public class BinanceWebSocketClient {
                         }
 
                         String fullMessage = buffer.toString();
-                        buffer.setLength(0); // Очищаем буфер для следующего сообщения
+                        buffer.setLength(0); // clean buffer for the next message
 
                         try {
                             TradeEvent event;

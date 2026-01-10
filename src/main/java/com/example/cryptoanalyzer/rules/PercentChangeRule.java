@@ -81,6 +81,7 @@ public class PercentChangeRule implements AlertRule {
                     candle.getSymbol(), change, candles);
             deque.clear(); // reset window
             AlertDirection direction = change.compareTo(BigDecimal.ZERO) > 0 ? AlertDirection.UP : AlertDirection.DOWN;
+            log.warn(msg.concat(" direction ").concat(direction.toString()));
             return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PERCENT_CHANGE", msg, direction));
         } else {
             if (log.isDebugEnabled()) {

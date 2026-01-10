@@ -1,27 +1,60 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Crypto Analyzer</title>
+    <title>Market Analyzer</title>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-<h2>Crypto Analyzer (placeholder)</h2>
-<canvas id="chart" width="800" height="400"></canvas>
+
+<h2>BTCUSDT – Close Price</h2>
+
+<canvas id="chart" width="900" height="400"></canvas>
 
 <script>
-const ctx = document.getElementById('chart');
-new Chart(ctx, {
+const ctx = document.getElementById('chart').getContext('2d');
+
+const chart = new Chart(ctx, {
     type: 'line',
     data: {
         labels: [],
         datasets: [{
-            label: 'Price',
-            data: []
+            label: 'Close price',
+            data: [],
+            borderWidth: 2,
+            pointRadius: 0
         }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            x: {
+                ticks: { maxTicksLimit: 10 }
+            }
+        }
     }
 });
+
+async function loadCandles() {
+    const res = await fetch('/api/candle/getAll?symbol=BTCUSDT');
+    const data = await res.json();
+
+    console.log("Candles:", data);
+
+    chart.data.labels = data.map(c =>
+        new Date(c.startTime).toLocaleTimeString()
+    );
+
+    chart.data.datasets[0].data = data.map(c =>
+        Number(c.closePrice)
+    );
+
+    chart.update();
+}
+
+loadCandles();
 </script>
+
 </body>
 </html>

@@ -68,7 +68,11 @@ public class PercentChangeRule implements AlertRule {
         if (deque.size() < candles) return Optional.empty();
 
         var first = deque.peekFirst();
-        BigDecimal change = candle.getClosePrice().subtract(first.getClosePrice())
+//        BigDecimal change = candle.getClosePrice().subtract(first.getClosePrice())
+        BigDecimal hi = candle.getHighPrice().abs();
+        BigDecimal low = candle.getLowPrice().abs();
+        BigDecimal diffPrice =  hi.max(low);
+        BigDecimal change = diffPrice.subtract(first.getClosePrice())
                 .divide(first.getClosePrice(), BigDecimal.ROUND_HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
 
@@ -76,9 +80,13 @@ public class PercentChangeRule implements AlertRule {
             String msg = String.format("%s changed %.2f%% over last %d candles",
                     candle.getSymbol(), change, candles);
             deque.clear(); // reset window
-            return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PERCENT_CHANGE", msg, AlertDirection.NEUTRAL));
+            AlertDirection direction = change.compareTo(BigDecimal.ZERO) > 0 ? AlertDirection.UP : AlertDirection.DOWN;
+            return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PERCENT_CHANGE", msg, direction));
         } else {
-            log.debug("Percent change {} is below threshold {} for {}", change, percent, candle.getSymbol());
+            if (log.isDebugEnabled()) {
+                AlertDirection direction = change.compareTo(BigDecimal.ZERO) > 0 ? AlertDirection.UP : AlertDirection.DOWN;
+                log.debug("Percent change {} is below threshold {} for {} direction {} ", change, percent, candle.getSymbol(), direction);
+            }
         }
         return Optional.empty();
     }

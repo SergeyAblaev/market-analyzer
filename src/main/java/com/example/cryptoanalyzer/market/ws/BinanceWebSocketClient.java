@@ -48,12 +48,23 @@ public class BinanceWebSocketClient {
                 .newWebSocketBuilder()
                 .buildAsync(uri, new WebSocket.Listener() {
 
+                    private final StringBuilder buffer = new StringBuilder();
+
                     @Override
                     public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
+                        buffer.append(data);
+                        if (!last) {
+                            webSocket.request(1);
+                            return null;
+                        }
+
+                        String fullMessage = buffer.toString();
+                        buffer.setLength(0); // Очищаем буфер для следующего сообщения
+
                         try {
                             TradeEvent event;
-                            log.debug("Received WS message: {}", data);
-                            JsonNode node = mapper.readTree(data.toString()).get("data");
+                            log.debug("Received WS message: {}", fullMessage);
+                            JsonNode node = mapper.readTree(fullMessage).get("data");
                             if (node != null) {
                                 event = new TradeEvent(
                                         node.get("s").asText(),
@@ -63,10 +74,10 @@ public class BinanceWebSocketClient {
                                 );
                                 if (consumer != null) consumer.accept(event);
                             } else {
-                                log.warn("Invalid WS message: {}", data);
+                                log.warn("Invalid WS message: {}", fullMessage);
                             }
                         } catch (Exception e) {
-                            log.error("Error parsing WS message: {}", data);
+                            log.error("Error parsing WS message: {}", fullMessage);
                             log.debug("Error parsing WS message", e);
                         }
                         webSocket.request(1);

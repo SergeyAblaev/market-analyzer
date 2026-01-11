@@ -28,18 +28,18 @@ public class AlertRulesConfig {
 
         // PriceThresholdRules
         Map<String, PriceThresholdRule.Threshold> thresholds = new HashMap<>();
-        priceThresholds.forEach((sym, vals) -> {
-            thresholds.put(sym.toLowerCase(),
+        priceThresholds.forEach((symbol, vals) -> {
+            thresholds.put(symbol.toLowerCase(),
                     new PriceThresholdRule.Threshold(vals.get("upper"), vals.get("lower")));
         });
         list.add(new PriceThresholdRule(thresholds));
 
         // PercentChangeRules
-        percentConfigs.forEach((sym, cfg) -> {
+        percentConfigs.forEach((symbol, cfg) -> {
             int tf = (Integer) cfg.get("timeframe");
             int c  = (Integer) cfg.get("candles");
             BigDecimal pct = new BigDecimal(cfg.get("percent").toString());
-            list.add(new PercentChangeRule(sym ,c, pct, tf));
+            list.add(new PercentChangeRule(symbol ,c, pct, tf));
         });
 
         return list;

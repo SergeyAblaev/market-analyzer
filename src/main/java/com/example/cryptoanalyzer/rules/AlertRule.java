@@ -3,10 +3,15 @@ package com.example.cryptoanalyzer.rules;
 
 import com.example.cryptoanalyzer.ohlc.model.OhlcCandle;
 import com.example.cryptoanalyzer.alerts.model.AlertEvent;
+import com.example.cryptoanalyzer.web.model.AlertRuleUpdateDto;
 
 import java.util.Optional;
 
 public interface AlertRule {
 
     Optional<AlertEvent> evaluate(OhlcCandle candle);
+
+    String getId();
+
+    void updateFrom(AlertRuleUpdateDto source);
 }

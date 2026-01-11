@@ -31,8 +31,8 @@ const chart = new Chart(ctx, {
             x: {
                 type: 'time',
                 time: {
-                    unit: 'minute',
-                    stepSize: 1
+                    unit: 'second',
+                    stepSize: 60
                 }
             }
         }
@@ -44,7 +44,7 @@ async function loadCandles() {
     const data = await res.json();
 
     chart.data.datasets[0].data = data.map(c => ({
-        x: new Date(c.startTime),
+        x: new Date(c.endTime),
         o: c.openPrice,
         h: c.highPrice,
         l: c.lowPrice,
@@ -54,7 +54,33 @@ async function loadCandles() {
     chart.update();
 }
 
-loadCandles();
+async function loadAlerts() {
+    const res = await fetch('/api/alerts?symbol=BTCUSDT');
+    const alerts = await res.json();
+
+    chart.data.datasets[1].data = alerts.map(a => ({
+        x: new Date(a.triggeredAt),
+        y: a.message
+    }));
+
+    chart.update();
+}
+
+async function loadAll() {
+    await loadCandles();
+    await loadAlerts();
+}
+
+chart.data.datasets.push({
+    label: 'Alerts',
+    type: 'scatter',
+    data: [],
+    pointRadius: 6,
+    pointStyle: 'triangle',
+    backgroundColor: 'red'
+});
+
+loadAll();
 </script>
 
 </body>

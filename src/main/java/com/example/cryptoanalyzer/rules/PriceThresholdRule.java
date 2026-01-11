@@ -4,12 +4,15 @@ package com.example.cryptoanalyzer.rules;
 import com.example.cryptoanalyzer.alerts.model.AlertDirection;
 import com.example.cryptoanalyzer.alerts.model.AlertEvent;
 import com.example.cryptoanalyzer.ohlc.model.OhlcCandle;
+import com.example.cryptoanalyzer.web.model.AlertRuleUpdateDto;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Getter
 public class PriceThresholdRule implements AlertRule {
 
     private final Map<String, Threshold> thresholds;
@@ -54,4 +57,14 @@ public class PriceThresholdRule implements AlertRule {
         return Optional.empty();
     }
 
+    @Override
+    public String getId() {
+        return "PriceThresholdRule";
+    }
+
+    @Override
+    public void updateFrom(AlertRuleUpdateDto source) {
+//        PriceThresholdRule s = (PriceThresholdRule) source;
+        throw new RuntimeException("PriceThresholdRule update is not implemented!");
+    }
 }

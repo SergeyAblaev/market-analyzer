@@ -4,9 +4,7 @@ import com.example.cryptoanalyzer.rules.AlertRule;
 import com.example.cryptoanalyzer.rules.service.AlertRulesService;
 import com.example.cryptoanalyzer.web.model.AlertRuleUpdateDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,7 +21,7 @@ public class AlertRulesController {
         return service.getRules();
     }
 
-    @GetMapping("/update")
+    @PatchMapping("/update")
     public AlertRule update(AlertRuleUpdateDto dto) {
         return service.update(dto);
     }

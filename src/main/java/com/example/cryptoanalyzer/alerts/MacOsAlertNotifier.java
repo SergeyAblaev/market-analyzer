@@ -36,9 +36,11 @@ public class MacOsAlertNotifier implements AlertNotifier {
     }
 
     private String emoji(AlertEvent e) {
+        int vol = Math.abs(e.getVol());
+        if (vol > 8) vol = 8;
         return switch (e.getDirection()) {
-            case UP -> "🟢⬆️";
-            case DOWN -> "🔴⬇️";
+            case UP -> "⬆️" + "🟢".repeat(vol);
+            case DOWN -> "⬇️" + "🔴".repeat(vol);
             default -> "🚨";
         };
     }

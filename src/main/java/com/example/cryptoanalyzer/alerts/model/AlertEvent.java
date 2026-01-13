@@ -24,14 +24,16 @@ public class AlertEvent {
     private String message;
     private Instant triggeredAt;
     private AlertDirection direction;
+    private int vol;
 
-    public AlertEvent(String symbol, int timeframe, String ruleType, String message, AlertDirection direction) {
+    public AlertEvent(String symbol, int timeframe, String ruleType, String message, AlertDirection direction, int vol) {
         this.symbol = symbol;
         this.timeframe = timeframe;
         this.ruleType = ruleType;
         this.message = message;
         this.triggeredAt = Instant.now();
         this.direction = direction;
+        this.vol = vol;
     }
 
 }

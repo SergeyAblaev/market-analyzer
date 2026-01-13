@@ -39,7 +39,7 @@ public class PriceThresholdRule implements AlertRule {
             if (!allertFlagUp) {
                 allertFlagsUp.put(symbol, true);
                 String msg = " crossed above " + t.upper() + " (" + close.intValue() + ")";
-                return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PRICE_THRESHOLD", msg, AlertDirection.UP));
+                return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PRICE_THRESHOLD", msg, AlertDirection.UP, 1));
             }
         } else {
             allertFlagsUp.put(symbol, false);
@@ -49,7 +49,7 @@ public class PriceThresholdRule implements AlertRule {
             if (!allertFlagLow) {
                 allertFlagsLow.put(symbol, true);
                 String msg = " dropped below " + t.lower() + " (" + close.intValue() + ")";
-                return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PRICE_THRESHOLD", msg, AlertDirection.DOWN));
+                return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PRICE_THRESHOLD", msg, AlertDirection.DOWN, 1));
             }
         } else {
             allertFlagsLow.put(symbol, false);

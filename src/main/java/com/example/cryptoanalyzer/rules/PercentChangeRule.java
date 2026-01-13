@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 @Slf4j
@@ -54,10 +55,11 @@ public class PercentChangeRule implements AlertRule {
         if (change.abs().compareTo(percent) >= 0) {
             String msg = String.format("%s changed %.2f%% over last %d candles",
                     candle.getSymbol(), change, candles);
+            int vol = change.divide(percent, 0, RoundingMode.HALF_UP).intValue();
             deque.clear(); // reset window
             AlertDirection direction = change.compareTo(BigDecimal.ZERO) > 0 ? AlertDirection.UP : AlertDirection.DOWN;
             log.warn(msg.concat(" direction ").concat(direction.toString()));
-            return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PERCENT_CHANGE", msg, direction));
+            return Optional.of(new AlertEvent(candle.getSymbol(), candle.getTimeframeSeconds(), "PERCENT_CHANGE", msg, direction, vol));
         } else {
             if (log.isDebugEnabled()) {
                 AlertDirection direction = change.compareTo(BigDecimal.ZERO) > 0 ? AlertDirection.UP : AlertDirection.DOWN;

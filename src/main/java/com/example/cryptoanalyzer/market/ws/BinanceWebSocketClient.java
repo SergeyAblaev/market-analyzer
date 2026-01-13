@@ -147,6 +147,7 @@ public class BinanceWebSocketClient {
         public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
             log.warn("Binance WS closed: {} - {}", statusCode, reason);
             BinanceWebSocketClient.this.webSocket = null;
+            lastMessageTime = Instant.EPOCH; // Reset time for the fastest response 'WebSocketWatchdog'
             return null;
         }
 

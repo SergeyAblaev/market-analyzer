@@ -39,9 +39,9 @@ public class MacOsAlertNotifier implements AlertNotifier {
         int vol = Math.abs(e.getVol());
         if (vol > 8) vol = 8;
         return switch (e.getDirection()) {
-            case UP -> "⬆️" + "🟢".repeat(vol);
-            case DOWN -> "⬇️" + "🔴".repeat(vol);
-            default -> "🚨";
+            case UP -> "⬆️" + "🟩".repeat(vol);
+            case DOWN -> "⬇️" + "🟥".repeat(vol);
+            default -> "🟨";
         };
     }
 

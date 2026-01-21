@@ -7,80 +7,215 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .tabs {
+            margin-bottom: 10px;
+        }
+
+        .tab-button {
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            background: #eee;
+            cursor: pointer;
+        }
+
+        .tab-button.active {
+            background: #ddd;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin-top: 10px;
+            width: 600px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 6px 10px;
+            text-align: center;
+        }
+
+        input {
+            width: 80px;
+        }
+
+        button.save {
+            padding: 4px 10px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
-<h2>BTCUSDT – Close Price</h2>
+<div class="tabs">
+    <button class="tab-button active" onclick="showTab('chartTab')">Chart</button>
+    <button class="tab-button" onclick="showTab('rulesTab')">Alert Rules</button>
+</div>
 
-<canvas id="chart" width="900" height="400"></canvas>
+<!-- ================= CHART TAB ================= -->
+<div id="chartTab" class="tab-content active">
+    <h2>BTCUSDT – Close Price</h2>
+    <canvas id="chart" width="900" height="400"></canvas>
+</div>
+
+<!-- ================= ALERT RULES TAB ================= -->
+<div id="rulesTab" class="tab-content">
+    <h2>Percent Change Alert Rules</h2>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Symbol</th>
+            <th>Candles</th>
+            <th>Percent</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody id="rulesTableBody">
+        </tbody>
+    </table>
+</div>
 
 <script>
-const ctx = document.getElementById('chart').getContext('2d');
+    /* ================= TABS ================= */
+    function showTab(id) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
 
-const chart = new Chart(ctx, {
-    type: 'candlestick',
-    data: {
-        datasets: [{
-            label: 'BTCUSDT',
-            data: []
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            x: {
-                type: 'time',
-                time: {
-                    unit: 'second',
-                    stepSize: 60
+        document.getElementById(id).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    /* ================= CHART ================= */
+    const ctx = document.getElementById('chart').getContext('2d');
+
+    const chart = new Chart(ctx, {
+        type: 'candlestick',
+        data: {
+            datasets: [{
+                label: 'BTCUSDT',
+                data: []
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'second',
+                        stepSize: 60
+                    }
                 }
             }
         }
+    });
+
+    chart.data.datasets.push({
+        label: 'Alerts',
+        type: 'scatter',
+        data: [],
+        pointRadius: 6,
+        pointStyle: 'triangle',
+        backgroundColor: 'red'
+    });
+
+    async function loadCandles() {
+        const res = await fetch('/api/candle/getAll?symbol=BTCUSDT');
+        const data = await res.json();
+
+        chart.data.datasets[0].data = data.map(c => ({
+            x: new Date(c.endTime),
+            o: c.openPrice,
+            h: c.highPrice,
+            l: c.lowPrice,
+            c: c.closePrice
+        }));
+
+        chart.update();
     }
-});
 
-async function loadCandles() {
-    const res = await fetch('/api/candle/getAll?symbol=BTCUSDT');
-    const data = await res.json();
+    async function loadAlerts() {
+        const res = await fetch('/api/alerts?symbol=BTCUSDT');
+        const alerts = await res.json();
 
-    chart.data.datasets[0].data = data.map(c => ({
-        x: new Date(c.endTime),
-        o: c.openPrice,
-        h: c.highPrice,
-        l: c.lowPrice,
-        c: c.closePrice
-    }));
+        chart.data.datasets[1].data = alerts.map(a => ({
+            x: new Date(a.triggeredAt),
+            y: a.message
+        }));
 
-    chart.update();
-}
+        chart.update();
+    }
 
-async function loadAlerts() {
-    const res = await fetch('/api/alerts?symbol=BTCUSDT');
-    const alerts = await res.json();
+    /* ================= ALERT RULES ================= */
+    async function loadAlertRules() {
+        const res = await fetch('/api/alertrules/all');
+        const rules = await res.json();
 
-    chart.data.datasets[1].data = alerts.map(a => ({
-        x: new Date(a.triggeredAt),
-        y: a.message
-    }));
+        const tbody = document.getElementById('rulesTableBody');
+        tbody.innerHTML = '';
 
-    chart.update();
-}
+        rules
+            .filter(r => r.id.startsWith('PERCENT_CHANGE'))
+            .forEach(rule => {
+                const tr = document.createElement('tr');
 
-async function loadAll() {
-    await loadCandles();
-    await loadAlerts();
-}
+                tr.innerHTML = `
+                <td>${rule.symbol}</td>
+                <td>
+                    <input type="number" min="1" value="${rule.candles}" id="candles-${rule.id}">
+                </td>
+                <td>
+                    <input type="number" step="0.01" value="${rule.percent}" id="percent-${rule.id}">
+                </td>
+                <td>
+                    <button class="save" onclick="updateRule('${rule.id}')">Save</button>
+                </td>
+            `;
 
-chart.data.datasets.push({
-    label: 'Alerts',
-    type: 'scatter',
-    data: [],
-    pointRadius: 6,
-    pointStyle: 'triangle',
-    backgroundColor: 'red'
-});
+                tbody.appendChild(tr);
+            });
+    }
 
-loadAll();
+    async function updateRule(ruleId) {
+        const candles = document.getElementById(`candles-${ruleId}`).value;
+        const percent = document.getElementById(`percent-${ruleId}`).value;
+
+        const url = `/api/alertrules/update?id=${ruleId}&candles=${candles}&percent=${percent}`;
+
+        const res = await fetch(url, {
+            method: 'PATCH'
+        });
+
+        if (res.ok) {
+            alert(`Rule ${ruleId} updated`);
+        } else {
+            alert(`Failed to update ${ruleId}`);
+        }
+    }
+
+    /* ================= INIT ================= */
+    async function loadAll() {
+        await loadCandles();
+        await loadAlerts();
+        await loadAlertRules();
+    }
+
+    loadAll();
 </script>
 
 </body>

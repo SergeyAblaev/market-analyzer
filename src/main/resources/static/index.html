@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Market Analyzer</title>
-
+    <script src="/js/alertrules.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
@@ -88,6 +88,8 @@
         <tbody id="rulesTableBody">
         </tbody>
     </table>
+
+    <div id="rulesStatus" style="margin-top:10px;"></div>
 </div>
 
 <script>
@@ -161,58 +163,11 @@
         chart.update();
     }
 
-    /* ================= ALERT RULES ================= */
-    async function loadAlertRules() {
-        const res = await fetch('/api/alertrules/all');
-        const rules = await res.json();
-
-        const tbody = document.getElementById('rulesTableBody');
-        tbody.innerHTML = '';
-
-        rules
-            .filter(r => r.id.startsWith('PERCENT_CHANGE'))
-            .forEach(rule => {
-                const tr = document.createElement('tr');
-
-                tr.innerHTML = `
-                <td>${rule.symbol}</td>
-                <td>
-                    <input type="number" min="1" value="${rule.candles}" id="candles-${rule.id}">
-                </td>
-                <td>
-                    <input type="number" step="0.01" value="${rule.percent}" id="percent-${rule.id}">
-                </td>
-                <td>
-                    <button class="save" onclick="updateRule('${rule.id}')">Save</button>
-                </td>
-            `;
-
-                tbody.appendChild(tr);
-            });
-    }
-
-    async function updateRule(ruleId) {
-        const candles = document.getElementById(`candles-${ruleId}`).value;
-        const percent = document.getElementById(`percent-${ruleId}`).value;
-
-        const url = `/api/alertrules/update?id=${ruleId}&candles=${candles}&percent=${percent}`;
-
-        const res = await fetch(url, {
-            method: 'PATCH'
-        });
-
-        if (res.ok) {
-            alert(`Rule ${ruleId} updated`);
-        } else {
-            alert(`Failed to update ${ruleId}`);
-        }
-    }
-
     /* ================= INIT ================= */
     async function loadAll() {
         await loadCandles();
         await loadAlerts();
-        await loadAlertRules();
+        initAlertRules();
     }
 
     loadAll();

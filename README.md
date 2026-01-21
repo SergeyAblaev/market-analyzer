@@ -20,14 +20,15 @@ OHLC Aggregator
 ↓  
 Closed Candle (here is calling RuleEngine)  
 ↓  
-RuleEngine  
+RuleEngine   (stateful rules with candle history)
 ↓  
 MacOS Alert  
 
-## Install
+## Rules:
 
-CREATE USER marketanalyse WITH PASSWORD 'str0ng...';  
-CREATE DATABASE marketanalyse OWNER marketanalyse;
+PriceThresholdRule
+PercentChangeRule - Checks that the price has changed by Y% in X minutes
+ImpulseMoveRule - Calculate ALERT: STRONG BULLISH IMPULSE / BEARISH IMPULSE
 
 ## Todo:
 

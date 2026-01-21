@@ -19,6 +19,9 @@ public class AlertRulesConfig {
     @Value("#{${alerts.percent-change}}")
     private Map<String, Map<String, Object>> percentConfigs;
 
+    @Value("#{${alerts.impulse-move}}")
+    private Map<String, Map<String, Object>> impulseMoveConfigs;
+
 //    @Autowired
 //    private MacOsAlertNotifier alertService;
 
@@ -40,6 +43,15 @@ public class AlertRulesConfig {
             int c  = (Integer) cfg.get("candles");
             BigDecimal pct = new BigDecimal(cfg.get("percent").toString());
             list.add(new PercentChangeRule(symbol ,c, pct, tf));
+        });
+
+        // ImpulseMoveRules
+        impulseMoveConfigs.forEach((symbol, cfg) -> {
+            int tf = (Integer) cfg.get("timeframe");
+            BigDecimal directionRatio  = BigDecimal.valueOf((Double) cfg.get("directionRatio"));
+            BigDecimal minTotalMovePercent  = BigDecimal.valueOf((Double) cfg.get("minTotalMovePercent"));
+            BigDecimal accelerationFactor  = BigDecimal.valueOf((Double) cfg.get("accelerationFactor"));
+            list.add(new ImpulseMoveRule(symbol, tf,  directionRatio,  minTotalMovePercent,  accelerationFactor));
         });
 
         return list;

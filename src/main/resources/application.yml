@@ -15,15 +15,10 @@ alerts:
   percent-change: "{ 'BTCUSDT': { 'timeframe': 60, 'candles': 3, 'percent': 0.1 },'ETHUSDT': { 'timeframe': 60, 'candles': 3, 'percent': 0.1 } }"
   impulse-move: "{ 'BTCUSDT': { 'timeframe': 60, 'directionRatio': 0.75, 'minTotalMovePercent': 0.1, 'accelerationFactor': 1.2 },'ETHUSDT': { 'timeframe': 60, 'directionRatio': 0.75, 'minTotalMovePercent': 0.8, 'accelerationFactor': 1.5 } }"
 
-#  price-thresholds:
-#    btcusdt:
-#      upper: 50000
-#      lower: 40000
-#  percent-change:
-#    btcusdt:
-#      timeframe: 15
-#      candles: 4
-#      percent: 1.5
+rules:
+  impulse-move:
+    is-active: false
+
 
 
 spring:

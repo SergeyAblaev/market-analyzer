@@ -114,15 +114,15 @@ public class ImpulseMoveRule implements AlertRule {
 
         BigDecimal bearishRatio = BigDecimal.valueOf(bearish)
                 .divide(BigDecimal.valueOf(total), 4, RoundingMode.HALF_UP);
-
-        if (bullishRatio.compareTo(directionRatio) >= 0) {
-            return DirectionStats.bullish(bullishRatio);
+        if (bullishRatio.compareTo(bearishRatio) >= 0) {
+            if (bullishRatio.compareTo(directionRatio) >= 0) {
+                return DirectionStats.bullish(bullishRatio);
+            }
+        } else {
+            if (bearishRatio.compareTo(directionRatio) >= 0) {
+                return DirectionStats.bearish(bearishRatio);
+            }
         }
-
-        if (bearishRatio.compareTo(directionRatio) >= 0) {
-            return DirectionStats.bearish(bearishRatio);
-        }
-
         return DirectionStats.none();
     }
 

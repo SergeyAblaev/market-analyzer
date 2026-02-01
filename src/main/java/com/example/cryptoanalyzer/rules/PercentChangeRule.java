@@ -53,8 +53,8 @@ public class PercentChangeRule implements AlertRule {
                 .multiply(BigDecimal.valueOf(100));
 
         if (change.abs().compareTo(percent) >= 0) {
-            String msg = String.format("%s changed %.2f%% over last %d candles",
-                    candle.getSymbol(), change, candles);
+            String msg = String.format("%s changed %.2f%% over last %d candles (%.2f)",
+                    candle.getSymbol(), change, candles, candle.getClosePrice());
             int vol = change.divide(percent, 0, RoundingMode.HALF_UP).intValue();
             deque.clear(); // reset window
             AlertDirection direction = change.compareTo(BigDecimal.ZERO) > 0 ? AlertDirection.UP : AlertDirection.DOWN;

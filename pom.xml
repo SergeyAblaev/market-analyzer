@@ -6,8 +6,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.example</groupId>
-  <artifactId>crypto-analyzer</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <artifactId>market-analyzer</artifactId>
+  <version>1.0.1-SNAPSHOT</version>
 
   <properties>
     <java.version>17</java.version>

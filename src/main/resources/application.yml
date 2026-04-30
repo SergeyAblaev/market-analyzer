@@ -3,8 +3,10 @@ server:
   port: 8080
 
 binance:
-  ws-url: wss://stream.binance.com:9443/stream
-  symbols: btcusdt, ethusdt, solusdt, BZUSDT
+  spot_ws-url: wss://stream.binance.com:9443/stream
+  futures_ws-url: wss://fstream.binance.com/stream
+  spot-symbols: btcusdt, ethusdt, solusdt
+  futures-symbols: BZUSDT
 
 ohlc:
   timeframes: 60

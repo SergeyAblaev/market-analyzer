@@ -24,4 +24,15 @@ public class TickerController {
     ) {
         client.addTicker(symbol, type);
     }
+
+    @PostMapping("/remove")
+    public void removeTicker(
+            @RequestParam String symbol,
+            @RequestParam
+            @Schema(defaultValue = "SPOT", description = "Market types 'FUTURES' or 'SPOT'")
+            MarketType type
+    ) {
+        client.removeTicker(symbol, type);
+    }
+
 }

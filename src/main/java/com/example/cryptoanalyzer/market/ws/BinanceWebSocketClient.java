@@ -44,8 +44,8 @@ public class BinanceWebSocketClient {
     private final ScheduledExecutorService scheduler =
             Executors.newScheduledThreadPool(4);
 
-    private final List<WebSocket> spotSockets = new CopyOnWriteArrayList<>();
-    private final List<WebSocket> futuresSockets = new CopyOnWriteArrayList<>();
+    private final List<WebSocket> spotSockets = new CopyOnWriteArrayList<>(); //Fixme: rewrite pools on 'ConcurrentHashMap'
+    private final List<WebSocket> futuresSockets = new CopyOnWriteArrayList<>(); //Fixme: rewrite pools on 'ConcurrentHashMap'
 
     private final Map<WebSocket, Integer> reconnectAttempts = new ConcurrentHashMap<>();
 
@@ -78,7 +78,7 @@ public class BinanceWebSocketClient {
     }
 
     // =========================
-    // API
+    // Ticker API
     // =========================
     public synchronized void addTicker(String symbol, MarketType type) {
 
@@ -93,6 +93,23 @@ public class BinanceWebSocketClient {
         }
 
         subscriptions.add(new TickerSubscription(symbol, type));
+
+        restart();
+    }
+
+    public synchronized void removeTicker(String symbol, MarketType type) {
+
+        log.info("Removing ticker {} ({})", symbol, type);
+
+        boolean removed = subscriptions.removeIf(s ->
+                s.getSymbol().equalsIgnoreCase(symbol)
+                        && s.getMarketType() == type
+        );
+
+        if (!removed) {
+            log.warn("Ticker not exist: {} ({})", symbol, type);
+            return;
+        }
 
         restart();
     }

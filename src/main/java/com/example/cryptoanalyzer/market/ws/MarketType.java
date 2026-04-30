@@ -1,4 +1,4 @@
-package com.example.cryptoanalyzer.market;
+package com.example.cryptoanalyzer.market.ws;
 
 public enum MarketType {
     SPOT,

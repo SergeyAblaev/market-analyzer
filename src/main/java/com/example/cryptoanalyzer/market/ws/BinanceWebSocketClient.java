@@ -11,11 +11,13 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
-import java.util.concurrent.CompletionStage;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -33,13 +35,23 @@ public class BinanceWebSocketClient {
     @Value("${binance.futures-symbols}")
     private List<String> futuresSymbols;
 
+    private static final int SHARD_SIZE = 50;
+    private static final int MAX_RECONNECT_ATTEMPTS = 10;
+
     private final ObjectMapper mapper = new ObjectMapper();
+    private final HttpClient httpClient = HttpClient.newHttpClient();
 
-    private volatile Instant lastSpotMessageTime = Instant.now();
-    private volatile Instant lastFuturesMessageTime = Instant.now();
+    private final ScheduledExecutorService scheduler =
+            Executors.newScheduledThreadPool(4);
 
-    private volatile WebSocket spotWebSocket;
-    private volatile WebSocket futuresWebSocket;
+    private final List<WebSocket> spotSockets = new CopyOnWriteArrayList<>();
+    private final List<WebSocket> futuresSockets = new CopyOnWriteArrayList<>();
+
+    private final Map<WebSocket, Integer> reconnectAttempts = new ConcurrentHashMap<>();
+
+    private final List<TickerSubscription> subscriptions = new CopyOnWriteArrayList<>();
+
+    private volatile Instant lastMessageTime = Instant.now();
 
     private Consumer<TradeEvent> consumer;
 
@@ -51,108 +63,144 @@ public class BinanceWebSocketClient {
     //{"stream":"btcusdt@trade","data":{"e":"trade","E":1767387168240,"s":"BTCUSDT","t":5729884604,"p":"89690.38000000","q":"0.00006000","T":1767387168237,"m":true,"M":true}}
     //{"stream":"ethusdt@trade","data":{"e":"trade","E":1767387169112,"s":"ETHUSDT","t":3408559518,"p":"3117.25000000","q":"0.00170000","T":1767387169112,"m":true,"M":true}}
     @PostConstruct
-    public synchronized void connect() {
+    public void init() {
+        loadInitialSubscriptions();
+        connectAll();
+        startHeartbeat();
+    }
 
-        if (spotWebSocket != null || futuresWebSocket != null) {
-            log.warn("WebSockets already connected, skipping connect()");
+    private void loadInitialSubscriptions() {
+        spotSymbols.forEach(s ->
+                subscriptions.add(new TickerSubscription(s, MarketType.SPOT)));
+
+        futuresSymbols.forEach(s ->
+                subscriptions.add(new TickerSubscription(s, MarketType.FUTURES)));
+    }
+
+    // =========================
+    // API
+    // =========================
+    public synchronized void addTicker(String symbol, MarketType type) {
+
+        log.info("Adding ticker {} ({})", symbol, type);
+
+        boolean exists = subscriptions.stream()
+                .anyMatch(s -> s.getSymbol().equalsIgnoreCase(symbol));
+
+        if (exists) {
+            log.warn("Ticker already exists: {}", symbol);
             return;
         }
 
-        if (!spotSymbols.isEmpty()) {
-            connectSpot(spotSymbols);
+        subscriptions.add(new TickerSubscription(symbol, type));
+
+        restart();
+    }
+
+    // =========================
+    // CONNECT
+    // =========================
+    public synchronized void connectAll() {
+
+        Map<MarketType, List<TickerSubscription>> grouped =
+                subscriptions.stream()
+                        .collect(Collectors.groupingBy(TickerSubscription::getMarketType));
+
+        connectMarket(grouped.get(MarketType.SPOT), spotWsUrl, spotSockets);
+        connectMarket(grouped.get(MarketType.FUTURES), futuresWsUrl, futuresSockets);
+    }
+
+    private void connectMarket(List<TickerSubscription> subs,
+                               String url,
+                               List<WebSocket> pool) {
+
+        if (subs == null || subs.isEmpty()) return;
+
+        List<List<TickerSubscription>> shards = shard(subs);
+
+        for (List<TickerSubscription> shard : shards) {
+
+            String streams = shard.stream()
+                    .map(TickerSubscription::getStreamName)
+                    .collect(Collectors.joining("/"));
+
+            URI uri = URI.create(url + "?streams=" + streams);
+
+            log.info("Connecting WS shard: {}", uri);
+
+            httpClient.newWebSocketBuilder()
+                    .buildAsync(uri, new Listener(shard, url, pool))
+                    .thenAccept(ws -> {
+                        pool.add(ws);
+                        reconnectAttempts.put(ws, 0);
+                    });
+        }
+    }
+
+    private List<List<TickerSubscription>> shard(List<TickerSubscription> list) {
+        List<List<TickerSubscription>> result = new ArrayList<>();
+
+        for (int i = 0; i < list.size(); i += SHARD_SIZE) {
+            result.add(list.subList(i, Math.min(i + SHARD_SIZE, list.size())));
         }
 
-        if (!futuresSymbols.isEmpty()) {
-            connectFutures(futuresSymbols);
+        return result;
+    }
+
+    // =========================
+    // RECONNECT
+    // =========================
+    private void reconnect(WebSocket ws,
+                           List<TickerSubscription> shard,
+                           String url,
+                           List<WebSocket> pool) {
+
+        int attempt = reconnectAttempts.getOrDefault(ws, 0);
+
+        if (attempt >= MAX_RECONNECT_ATTEMPTS) {
+            log.error("Max reconnect attempts reached");
+            return;
         }
+
+        long delay = (long) Math.min(60, Math.pow(2, attempt)) * 1000
+                + ThreadLocalRandom.current().nextLong(1000);
+
+        reconnectAttempts.put(ws, attempt + 1);
+
+        scheduler.schedule(() -> {
+            log.warn("Reconnecting WS (attempt {})", attempt);
+
+            connectMarket(shard, url, pool);
+
+        }, delay, TimeUnit.MILLISECONDS);
     }
 
-    private void connectSpot(List<String> symbols) {
-        String streams = buildStreams(symbols);
-        URI uri = URI.create(spotWsUrl + "?streams=" + streams);
-
-        log.info("Connecting to Binance SPOT WS: {}", uri);
-
-        String webSocketType = "SPOT";
-        HttpClient.newHttpClient()
-                .newWebSocketBuilder()
-                .buildAsync(uri, new Listener(webSocketType))
-                .thenAccept(ws -> {
-                    this.spotWebSocket = ws;
-                    this.lastSpotMessageTime = Instant.now();
-                    log.info("Binance SPOT WS connected");
-                })
-                .exceptionally(ex -> {
-                    log.error("Failed to connect SPOT WS", ex);
-                    return null;
-                });
-    }
-
-    private void connectFutures(List<String> symbols) {
-        String streams = buildStreams(symbols);
-        URI uri = URI.create(futuresWsUrl + "?streams=" + streams);
-
-        log.info("Connecting to Binance FUTURES WS: {}", uri);
-
-        String webSocketType = "FUTURES";
-        HttpClient.newHttpClient()
-                .newWebSocketBuilder()
-                .buildAsync(uri, new Listener(webSocketType))
-                .thenAccept(ws -> {
-                    this.futuresWebSocket = ws;
-                    this.lastFuturesMessageTime = Instant.now();
-                    log.info("Binance FUTURES WS connected");
-                })
-                .exceptionally(ex -> {
-                    log.error("Failed to connect FUTURES WS", ex);
-                    return null;
-                });
-    }
-
-    private String buildStreams(List<String> symbols) {
-        return symbols.stream()
-                .map(s -> s.toLowerCase() + "@trade")
-                .reduce((a, b) -> a + "/" + b)
-                .orElseThrow();
+    // =========================
+    // HEARTBEAT
+    // =========================
+    private void startHeartbeat() {
+        scheduler.scheduleAtFixedRate(() -> {
+            spotSockets.forEach(ws -> ws.sendPing(ByteBuffer.wrap(new byte[]{1})));
+            futuresSockets.forEach(ws -> ws.sendPing(ByteBuffer.wrap(new byte[]{1})));
+        }, 30, 30, TimeUnit.SECONDS);
     }
 
     public Duration silenceDuration() {
-        Instant last = lastSpotMessageTime.isBefore(lastFuturesMessageTime)
-                ? lastSpotMessageTime
-                : lastFuturesMessageTime;
-
-        return Duration.between(last, Instant.now());
-    }
-
-    public synchronized void close() {
-
-        if (spotWebSocket != null) {
-            try {
-                log.info("Closing SPOT WS");
-                spotWebSocket.sendClose(WebSocket.NORMAL_CLOSURE, "Client restart").join();
-            } catch (Exception e) {
-                log.warn("Error closing SPOT WS", e);
-            } finally {
-                spotWebSocket = null;
-            }
-        }
-
-        if (futuresWebSocket != null) {
-            try {
-                log.info("Closing FUTURES WS");
-                futuresWebSocket.sendClose(WebSocket.NORMAL_CLOSURE, "Client restart").join();
-            } catch (Exception e) {
-                log.warn("Error closing FUTURES WS", e);
-            } finally {
-                futuresWebSocket = null;
-            }
-        }
+        return Duration.between(lastMessageTime, Instant.now());
     }
 
     public synchronized void restart() {
-        log.warn("Restarting Binance WS");
-        close();
-        connect();
+        log.warn("Restarting ALL WS");
+        closeAll();
+        connectAll();
+    }
+
+    public synchronized void closeAll() {
+        spotSockets.forEach(WebSocket::abort);
+        futuresSockets.forEach(WebSocket::abort);
+
+        spotSockets.clear();
+        futuresSockets.clear();
     }
 
     // =========================
@@ -160,16 +208,23 @@ public class BinanceWebSocketClient {
     // =========================
     private class Listener implements WebSocket.Listener {
 
-        private final String type;
+        private final List<TickerSubscription> shard;
+        private final String url;
+        private final List<WebSocket> pool;
+
         private final StringBuilder buffer = new StringBuilder();
 
-        public Listener(String type) {
-            this.type = type;
+        public Listener(List<TickerSubscription> shard,
+                        String url,
+                        List<WebSocket> pool) {
+            this.shard = shard;
+            this.url = url;
+            this.pool = pool;
         }
 
         @Override
         public void onOpen(WebSocket webSocket) {
-            log.info("Binance {} WS opened", type);
+            log.info("WS opened");
             webSocket.request(1);
         }
 
@@ -185,11 +240,7 @@ public class BinanceWebSocketClient {
             String fullMessage = buffer.toString();
             buffer.setLength(0);
 
-            if ("SPOT".equals(type)) {
-                lastSpotMessageTime = Instant.now();
-            } else {
-                lastFuturesMessageTime = Instant.now();
-            }
+            lastMessageTime = Instant.now();
 
             try {
                 JsonNode node = mapper.readTree(fullMessage).get("data");
@@ -205,12 +256,10 @@ public class BinanceWebSocketClient {
                     if (consumer != null) {
                         consumer.accept(event);
                     }
-                } else {
-                    log.warn("Invalid WS message: {}", fullMessage);
                 }
 
             } catch (Exception e) {
-                log.error("Error parsing WS message: {}", fullMessage, e);
+                log.error("WS parse error", e);
             }
 
             webSocket.request(1);
@@ -219,22 +268,16 @@ public class BinanceWebSocketClient {
 
         @Override
         public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
-            log.warn("Binance {} WS closed: {} - {}", type, statusCode, reason);
-
-            if ("SPOT".equals(type)) {
-                spotWebSocket = null;
-                lastSpotMessageTime = Instant.EPOCH;
-            } else {
-                futuresWebSocket = null;
-                lastFuturesMessageTime = Instant.EPOCH;
-            }
-
+            log.warn("WS closed: {}", reason);
+            pool.remove(webSocket);
+            reconnect(webSocket, shard, url, pool);
             return null;
         }
 
         @Override
         public void onError(WebSocket webSocket, Throwable error) {
-            log.error("Binance {} WS error", type, error);
+            log.error("WS error", error);
+            reconnect(webSocket, shard, url, pool);
         }
     }
 }

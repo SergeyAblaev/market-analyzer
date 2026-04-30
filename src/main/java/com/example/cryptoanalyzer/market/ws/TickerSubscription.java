@@ -1,7 +1,11 @@
-package com.example.cryptoanalyzer.market;
+package com.example.cryptoanalyzer.market.ws;
+
+import lombok.Getter;
 
 public class TickerSubscription {
+    @Getter
     private final String symbol;
+    @Getter
     private final MarketType marketType;
 
     public TickerSubscription(String symbol, MarketType marketType) {
@@ -11,9 +15,5 @@ public class TickerSubscription {
 
     public String getStreamName() {
         return symbol + "@trade";
-    }
-
-    public MarketType getMarketType() {
-        return marketType;
     }
 }

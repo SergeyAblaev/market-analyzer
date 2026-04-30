@@ -31,6 +31,7 @@ PercentChangeRule - Checks that the price has changed by Y% in X minutes
 ImpulseMoveRule - Calculate ALERT: STRONG BULLISH IMPULSE / BEARISH IMPULSE
 
 # Todo:
+- For add/remove tickers: Do replace code from 'Restarting ALL WS' -> 'Restarting ONE shard'!
 - Think about zero-downtime resubscribe (with no restart)
 - add latency monitoring
 

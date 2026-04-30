@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BinanceWebSocketClient {
 
+    public static final String TICKER_NOT_EXIST = "Ticker not exist";
+    public static final String TICKER_ALREADY_EXISTS = "Ticker already exists";
     @Value("${binance.spot_ws-url}")
     private String spotWsUrl;
 
@@ -80,7 +82,7 @@ public class BinanceWebSocketClient {
     // =========================
     // Ticker API
     // =========================
-    public synchronized void addTicker(String symbol, MarketType type) {
+    public synchronized String addTicker(String symbol, MarketType type) {
 
         log.info("Adding ticker {} ({})", symbol, type);
 
@@ -88,16 +90,17 @@ public class BinanceWebSocketClient {
                 .anyMatch(s -> s.getSymbol().equalsIgnoreCase(symbol));
 
         if (exists) {
-            log.warn("Ticker already exists: {}", symbol);
-            return;
+            log.warn(TICKER_ALREADY_EXISTS + ": {}", symbol);
+            return TICKER_ALREADY_EXISTS;
         }
 
         subscriptions.add(new TickerSubscription(symbol, type));
 
         restart();
+        return "Ticker added";
     }
 
-    public synchronized void removeTicker(String symbol, MarketType type) {
+    public synchronized String removeTicker(String symbol, MarketType type) {
 
         log.info("Removing ticker {} ({})", symbol, type);
 
@@ -107,11 +110,11 @@ public class BinanceWebSocketClient {
         );
 
         if (!removed) {
-            log.warn("Ticker not exist: {} ({})", symbol, type);
-            return;
+            log.warn(TICKER_NOT_EXIST + ": {} ({})", symbol, type);
+            return TICKER_NOT_EXIST;
         }
-
         restart();
+        return "Ticker removed";
     }
 
     // =========================
@@ -207,7 +210,7 @@ public class BinanceWebSocketClient {
     }
 
     public synchronized void restart() {
-        log.warn("Restarting ALL WS");
+        log.warn("Restarting ALL WS"); //FixMe: replace this from Restarting ALL WS -> Restarting ONE shard !
         closeAll();
         connectAll();
     }

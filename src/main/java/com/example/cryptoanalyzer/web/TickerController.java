@@ -16,23 +16,35 @@ public class TickerController {
     }
 
     @PostMapping("/add")
-    public void addTicker(
-            @RequestParam String symbol,
-            @RequestParam
+    public String addTicker(
+            @RequestParam("symbol") String symbol,
+            @RequestParam("type")
             @Schema(defaultValue = "SPOT", description = "Market types 'FUTURES' or 'SPOT'")
-            MarketType type
+            String typeStr
     ) {
-        client.addTicker(symbol, type);
+        MarketType type;
+        try {
+            type = MarketType.valueOf(typeStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid market type: " + typeStr);
+        }
+        return client.addTicker(symbol, type);
     }
 
     @PostMapping("/remove")
-    public void removeTicker(
-            @RequestParam String symbol,
-            @RequestParam
+    public String removeTicker(
+            @RequestParam("symbol") String symbol,
+            @RequestParam("type")
             @Schema(defaultValue = "SPOT", description = "Market types 'FUTURES' or 'SPOT'")
-            MarketType type
+            String typeStr
     ) {
-        client.removeTicker(symbol, type);
+        MarketType type;
+        try {
+            type = MarketType.valueOf(typeStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid market type: " + typeStr);
+        }
+        return client.removeTicker(symbol, type);
     }
 
 }

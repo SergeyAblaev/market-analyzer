@@ -2,6 +2,7 @@ package com.example.cryptoanalyzer.config;
 
 import com.example.cryptoanalyzer.alerts.MacOsAlertNotifier;
 import com.example.cryptoanalyzer.rules.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,22 +14,13 @@ import java.util.*;
 
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class AlertRulesConfig {
 
-    @Value("#{${alerts.price-thresholds}}")
-    private Map<String, Map<String, BigDecimal>> priceThresholds;
-
-    @Value("#{${alerts.percent-change}}")
-    private Map<String, Map<String, Object>> percentConfigs;
-
-    @Value("#{${alerts.impulse-move}}")
-    private Map<String, Map<String, Object>> impulseMoveConfigs;
+    private final AlertProperties alertProperties;
 
     @Value("#{${rules.impulse-move.is-active}}")
     private boolean isActiveImpulseMoveRule;
-
-//    @Autowired
-//    private MacOsAlertNotifier alertService;
 
     @Bean
     public List<AlertRule> alertRules() {
@@ -36,29 +28,29 @@ public class AlertRulesConfig {
 
         // PriceThresholdRules
         Map<String, PriceThresholdRule.Threshold> thresholds = new HashMap<>();
-        priceThresholds.forEach((symbol, vals) -> {
+        alertProperties.getPriceThresholds().forEach((symbol, vals) -> {
             thresholds.put(symbol.toLowerCase(),
-                    new PriceThresholdRule.Threshold(vals.get("upper"), vals.get("lower")));
+                    new PriceThresholdRule.Threshold(vals.getUpper(), vals.getLower()));
         });
         list.add(new PriceThresholdRule(thresholds));
         log.info("Added Price Threshol rule for price thresholds: {}", thresholds);
 
         // PercentChangeRules
-        percentConfigs.forEach((symbol, cfg) -> {
-            int tf = (Integer) cfg.get("timeframe");
-            int c  = (Integer) cfg.get("candles");
-            BigDecimal pct = new BigDecimal(cfg.get("percent").toString());
+        alertProperties.getPercentChange().forEach((symbol, cfg) -> {
+            int tf = (Integer) cfg.getTimeframe();
+            int c  = (Integer) cfg.getCandles();
+            BigDecimal pct = new BigDecimal(cfg.getPercent().toString());
             list.add(new PercentChangeRule(symbol ,c, pct, tf));
             log.info("Added Percent Change rule for {} with percent change {} and timeframe {}", symbol, pct, tf);
         });
 
         // ImpulseMoveRules
         if (isActiveImpulseMoveRule) {
-            impulseMoveConfigs.forEach((symbol, cfg) -> {
-                int tf = (Integer) cfg.get("timeframe");
-                BigDecimal directionRatio = BigDecimal.valueOf((Double) cfg.get("directionRatio"));
-                BigDecimal minTotalMovePercent = BigDecimal.valueOf((Double) cfg.get("minTotalMovePercent"));
-                BigDecimal accelerationFactor = BigDecimal.valueOf((Double) cfg.get("accelerationFactor"));
+            alertProperties.getImpulseMove().forEach((symbol, cfg) -> {
+                int tf = (Integer) cfg.getTimeframe();
+                BigDecimal directionRatio = BigDecimal.valueOf((Double) cfg.getDirectionRatio());
+                BigDecimal minTotalMovePercent = BigDecimal.valueOf((Double) cfg.getMinTotalMovePercent());
+                BigDecimal accelerationFactor = BigDecimal.valueOf((Double) cfg.getAccelerationFactor());
                 list.add(new ImpulseMoveRule(symbol, tf, directionRatio, minTotalMovePercent, accelerationFactor));
                 log.info("Added Impulse Move rule for {} with directionRatio {} minTotalMovePercent {} accelerationFactor {}  ", symbol, directionRatio, minTotalMovePercent, accelerationFactor);
             });
